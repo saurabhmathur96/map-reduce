@@ -24,7 +24,17 @@ for reducer in reducers:
     client = ServerProxy(address, allow_none=True)
     response = client.get_result(task_id)
     while response is None:
-        response = client.get_result(task_id)
+        try:
+            client = ServerProxy(address, allow_none=True)
+            response = client.get_result(task_id)
+        except ConnectionError:
+            # restart
+            print ("One or more workers failed. Please re-run job")
+            exit()
+    if response == 0:
+        # restart
+        print ("One or more workers failed. Please re-run job")
+        exit()
     result.extend(response)
 
 

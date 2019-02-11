@@ -32,11 +32,13 @@ class WorkerDaemon(daemon):
             retry = []
             for mapper in mappers:
                 address, task_id = mapper.get("address"), mapper.get("task_id")
-                client = ServerProxy(address, allow_none=True)
-                response = client.get_result(task_id, filter_parameters)
-                
+                try:
+                    client = ServerProxy(address, allow_none=True)
+                    response = client.get_result(task_id, filter_parameters)
+                except ConnectionRefusedError:
+                    return 0
+
                 if response is not None:
-                    print (response)
                     results.extend(response)
                 else:
                     retry.append(dict(address=address, task_id=task_id))
@@ -102,7 +104,13 @@ if __name__ == "__main__":
     from implementations import word_count, inverted_index
 
     
-    start(id, rootpath, outfile, pidfile, dbpath, { "word_count": word_count, "inverted_index": inverted_index })
+    start(id, rootpath, outfile, pidfile, dbpath, { 
+        "word_count": word_count, 
+        "inverted_index": inverted_index
+
+        # add new implementations here 
+    
+    })
     
     
         
